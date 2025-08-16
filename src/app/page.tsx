@@ -35,7 +35,7 @@ export default function HomePage() {
           </h1>
           <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-600">
             Modern web uygulamaları için güvenli, özelleştirilebilir ve kullanıcı dostu 
-            kimlik doğrulama sistemi. Auth0 entegrasyonu ile profesyonel çözümler.
+            kimlik doğrulama sistemi. Kullanıcı adı/şifre ile güvenli giriş ve kayıt olma.
           </p>
           
           <div className="mt-10 flex justify-center space-x-4">

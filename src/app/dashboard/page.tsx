@@ -33,16 +33,37 @@ export default function DashboardPage() {
     return null;
   }
 
+  // Debug için session bilgilerini console'da göster
+  console.log("Dashboard - Session:", session);
+  console.log("Dashboard - Session user:", session.user);
+  console.log("Dashboard - Session user role:", (session.user as any)?.role);
+  
+  const userRole = (session.user as any)?.role || "user";
+  const isAdmin = userRole === "admin";
+  
+  console.log("Dashboard - userRole:", userRole);
+  console.log("Dashboard - isAdmin:", isAdmin);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <div className="flex items-center space-x-4">
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              {isAdmin && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Admin
+                </span>
+              )}
+            </div>
             <div className="flex items-center space-x-4">
               <span className="text-gray-700">
                 Merhaba, {session.user?.name || session.user?.email}
+                {isAdmin && (
+                  <span className="ml-2 text-sm text-red-600 font-medium">(Admin)</span>
+                )}
               </span>
               <button
                 onClick={handleLogout}
@@ -88,12 +109,29 @@ export default function DashboardPage() {
                     Kullanıcı ID
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
-                    {session.user?.id || "Belirtilmemiş"}
+                    {(session.user as { id?: string })?.id || "Belirtilmemiş"}
                   </p>
                 </div>
               </div>
               
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Rol
+                  </label>
+                  <div className="mt-1">
+                    {isAdmin ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        Admin
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Kullanıcı
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Giriş Zamanı
@@ -127,9 +165,16 @@ export default function DashboardPage() {
               <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors duration-200">
                 Yeni Proje
               </button>
-              <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors duration-200">
-                Ayarlar
-              </button>
+              {isAdmin && (
+                <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors duration-200">
+                  Admin Paneli
+                </button>
+              )}
+              {!isAdmin && (
+                <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-md text-sm font-medium transition-colors duration-200">
+                  Ayarlar
+                </button>
+              )}
             </div>
           </div>
         </div>
