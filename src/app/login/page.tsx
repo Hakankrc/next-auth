@@ -3,18 +3,23 @@
 import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useToast } from "@/contexts/ToastContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // Form state
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    email: "",
     name: "",
+    email: ""
   });
-  const [error, setError] = useState("");
 
   useEffect(() => {
     // Check if user is already logged in
@@ -28,16 +33,15 @@ export default function LoginPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value
     });
-    setError(""); // Clear error when user types
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-
+    
     try {
       const result = await signIn("credentials", {
         username: formData.username,
@@ -46,11 +50,13 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
+        showToast("Kullanıcı adı veya şifre hatalı!", "error");
         setError("Kullanıcı adı veya şifre hatalı!");
       } else {
         router.push("/dashboard");
       }
     } catch {
+      showToast("Giriş yapılırken bir hata oluştu!", "error");
       setError("Giriş yapılırken bir hata oluştu!");
     } finally {
       setIsLoading(false);
@@ -61,22 +67,9 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setSuccess("");
 
     try {
-      // Basit validasyon
-      if (!formData.username || !formData.password || !formData.email || !formData.name) {
-        setError("Tüm alanları doldurun!");
-        setIsLoading(false);
-        return;
-      }
-
-      if (formData.password.length < 6) {
-        setError("Şifre en az 6 karakter olmalıdır!");
-        setIsLoading(false);
-        return;
-      }
-
-      // API'ye kayıt isteği gönder
       const response = await fetch("/api/register", {
         method: "POST",
         headers: {
@@ -85,37 +78,22 @@ export default function LoginPage() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Kayıt olurken bir hata oluştu!");
-        setIsLoading(false);
-        return;
-      }
-
-      // Başarılı kayıt sonrası giriş yap
-      const result = await signIn("credentials", {
-        username: formData.username,
-        password: formData.password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("Kayıt başarılı ama giriş yapılamadı!");
+      if (response.ok) {
+        showToast("Kayıt başarılı! Şimdi giriş yapabilirsiniz.", "success");
+        setSuccess("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
+        setFormData({ username: "", password: "", name: "", email: "" });
+        setIsLoginMode(true);
       } else {
-        router.push("/dashboard");
+        const errorData = await response.json();
+        showToast(errorData.message || "Kayıt olurken bir hata oluştu!", "error");
+        setError(errorData.message || "Kayıt olurken bir hata oluştu!");
       }
     } catch {
+      showToast("Kayıt olurken bir hata oluştu!", "error");
       setError("Kayıt olurken bir hata oluştu!");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const toggleMode = () => {
-    setIsLoginMode(!isLoginMode);
-    setFormData({ username: "", password: "", email: "", name: "" });
-    setError("");
   };
 
   return (
@@ -134,6 +112,33 @@ export default function LoginPage() {
         </div>
         
         <div className="bg-white rounded-lg shadow-xl p-8 space-y-6">
+          {/* Admin Giriş Bilgileri */}
+          {isLoginMode && (
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <h4 className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                Admin Giriş Bilgileri
+              </h4>
+              <div className="text-xs text-gray-600 space-y-1">
+                <p><span className="font-medium">Kullanıcı Adı:</span> kayra</p>
+                <p><span className="font-medium">Şifre:</span> kayra123</p>
+                <p><span className="font-medium">E-posta:</span> kayraExport@merhaba.com</p>
+                <p><span className="font-medium">Ad Soyad:</span> Kayra Export</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error/Success Messages */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
+              {success}
+            </div>
+          )}
+
           <form onSubmit={isLoginMode ? handleLogin : handleRegister} className="space-y-4">
             {!isLoginMode && (
               <>
@@ -142,29 +147,28 @@ export default function LoginPage() {
                     Ad Soyad
                   </label>
                   <input
+                    type="text"
                     id="name"
                     name="name"
-                    type="text"
-                    required
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Adınız ve soyadınız"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black placeholder-gray-500"
+                    placeholder="Ad Soyad"
                   />
                 </div>
-                
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                     E-posta
                   </label>
                   <input
+                    type="email"
                     id="email"
                     name="email"
-                    type="email"
-                    required
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black placeholder-gray-500"
                     placeholder="ornek@email.com"
                   />
                 </div>
@@ -176,14 +180,14 @@ export default function LoginPage() {
                 Kullanıcı Adı
               </label>
               <input
+                type="text"
                 id="username"
                 name="username"
-                type="text"
-                required
                 value={formData.username}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Kullanıcı adınız"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black placeholder-gray-500"
+                placeholder="Kullanıcı adı"
               />
             </div>
             
@@ -192,22 +196,17 @@ export default function LoginPage() {
                 Şifre
               </label>
               <input
+                type="password"
                 id="password"
                 name="password"
-                type="password"
-                required
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Şifreniz"
+                required
+                minLength={6}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-black placeholder-gray-500"
+                placeholder="Şifre (en az 6 karakter)"
               />
             </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-                {error}
-              </div>
-            )}
 
             <button
               type="submit"
@@ -225,45 +224,23 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Toggle Mode */}
           <div className="text-center">
             <button
-              onClick={toggleMode}
+              type="button"
+              onClick={() => {
+                setIsLoginMode(!isLoginMode);
+                setError("");
+                setSuccess("");
+                setFormData({ username: "", password: "", name: "", email: "" });
+              }}
               className="text-indigo-600 hover:text-indigo-500 text-sm font-medium"
             >
               {isLoginMode 
-                ? "Hesabınız yok mu? Kayıt olun" 
+                ? "Hesabınız yok mu? Kayıt olun"
                 : "Zaten hesabınız var mı? Giriş yapın"
               }
             </button>
-          </div>
-          
-          {/* Admin Kullanıcı Bilgileri - Sadece giriş modunda göster */}
-          {isLoginMode && (
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <h4 className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
-                Admin Giriş Bilgileri
-              </h4>
-              <div className="text-xs text-gray-600 space-y-1">
-                <p><span className="font-medium">Kullanıcı Adı:</span> kayra</p>
-                <p><span className="font-medium">Şifre:</span> kayra123</p>
-                <p><span className="font-medium">E-posta:</span> kayraExport@merhaba.com</p>
-                <p><span className="font-medium">Ad Soyad:</span> Kayra Export</p>
-              </div>
-            </div>
-          )}
-          
-          <div className="text-center">
-            <p className="text-sm text-gray-500">
-              {isLoginMode ? "Giriş yaparak" : "Kayıt olarak"}{" "}
-              <a href="/terms" className="text-indigo-600 hover:text-indigo-500">
-                Kullanım Şartları
-              </a>{" "}
-              ve{" "}
-              <a href="/privacy" className="text-indigo-600 hover:text-indigo-500">
-                Gizlilik Politikası
-              </a>{" "}
-              kabul etmiş olursunuz.
-            </p>
           </div>
         </div>
       </div>

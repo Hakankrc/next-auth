@@ -39,30 +39,15 @@ export function addUser(user: Omit<User, 'id' | 'role'>): User {
     id: Date.now().toString(),
     role: 'user' as const // Yeni kayıt olan her kullanıcı user rolünde
   };
-  global.users.push(newUser);
   
-  // Debug için console.log ekle
-  console.log("Yeni kullanıcı eklendi:", newUser.username, "Rol:", newUser.role);
-  console.log("Toplam kullanıcı sayısı:", global.users.length);
-  console.log("Mevcut kullanıcılar:", global.users.map(u => ({ username: u.username, id: u.id, role: u.role })));
+  global.users.push(newUser);
   
   return newUser;
 }
 
 // Kullanıcı bul
 export function findUser(username: string, password: string): User | undefined {
-  // Debug için console.log ekle
-  console.log("Kullanıcı aranıyor:", username);
-  console.log("Toplam kullanıcı sayısı:", global.users.length);
-  console.log("Mevcut kullanıcılar:", global.users.map(u => ({ username: u.username, id: u.id, role: u.role })));
-  
   const user = global.users.find(u => u.username === username && u.password === password);
-  
-  if (user) {
-    console.log("Kullanıcı bulundu:", user.username, "Rol:", user.role);
-  } else {
-    console.log("Kullanıcı bulunamadı:", username);
-  }
   
   return user;
 }
@@ -85,4 +70,30 @@ export function hasAdminUser(): boolean {
 // Admin kullanıcısını getir
 export function getAdminUser(): User | undefined {
   return global.users.find(u => u.role === 'admin');
+}
+
+// Kullanıcı sil (admin kendini silemesin)
+export function deleteUser(userId: string): boolean {
+  const userIndex = global.users.findIndex(u => u.id === userId);
+  
+  if (userIndex === -1) {
+    return false; // Kullanıcı bulunamadı
+  }
+  
+  const user = global.users[userIndex];
+  
+  // Admin kendini silemesin
+  if (user.role === 'admin') {
+    return false;
+  }
+  
+  // Kullanıcıyı sil
+  global.users.splice(userIndex, 1);
+  
+  return true;
+}
+
+// Kullanıcı ID ile bul
+export function findUserById(userId: string): User | undefined {
+  return global.users.find(u => u.id === userId);
 }

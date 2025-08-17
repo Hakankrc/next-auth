@@ -19,12 +19,6 @@ const handler = NextAuth({
         const user = findUser(credentials.username, credentials.password);
         
         if (user) {
-          console.log("Giriş yapılan kullanıcı:", {
-            username: user.username,
-            role: user.role,
-            id: user.id
-          });
-          
           return {
             id: user.id,
             name: user.name,
@@ -50,9 +44,9 @@ const handler = NextAuth({
         token.id = profile.sub;
       }
       if (user) {
-        // İlk girişte user'dan role'ü al
+        // İlk girişte user'dan id ve role'ü al
+        token.id = (user as any).id;
         (token as any).role = (user as any).role;
-        console.log("JWT callback - User'dan role alındı:", (user as any).role);
       }
       
       // Sonraki isteklerde token'dan role'ü koru
@@ -60,8 +54,6 @@ const handler = NextAuth({
       if (!(token as any).role && user) {
         (token as any).role = (user as any).role;
       }
-      
-      console.log("JWT callback - Token role:", (token as any).role);
       
       return token;
     },
@@ -76,11 +68,6 @@ const handler = NextAuth({
         if ((token as any).role) {
           (session.user as { id?: string; role?: string }).role = (token as any).role as string;
         }
-        
-        console.log("Session callback - Token:", token);
-        console.log("Session callback - Token role:", (token as any).role);
-        console.log("Session callback - Session user:", session.user);
-        console.log("Session callback - Session user role:", (session.user as any).role);
       }
       return session;
     },
