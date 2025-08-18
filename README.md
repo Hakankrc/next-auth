@@ -52,10 +52,8 @@ Bu proje, Next.js 15 ve NextAuth.js kullanarak modern bir kitap mağazası ve ki
 ## 🔑 Varsayılan Kullanıcı Bilgileri
 
 ### Admin Kullanıcısı
-- **Kullanıcı Adı:** kayra
-- **Şifre:** kayra123
-- **E-posta:** kayraExport@merhaba.com
-- **Ad Soyad:** Kayra Export
+- **Kullanıcı bilgileri giriş ekranına eklendi** 
+
 
 ## 📁 Proje Yapısı
 
