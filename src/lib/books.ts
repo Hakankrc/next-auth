@@ -19,22 +19,19 @@ if (!global.books) {
       id: "1",
       title: "Futbol Zekası",
       author: "Hakan Kırca",
-      price: 100,
-      image: "/book1.jpg" // Varsayılan resim
+      price: 100
     },
     {
       id: "2",
       title: "Kalp Şifası",
       author: "Ateş Hekimoğlu",
-      price: 150,
-      image: "/book2.jpg"
+      price: 150
     },
     {
       id: "3",
       title: "Deha",
       author: "Devran Karan",
-      price: 200,
-      image: "/book3.jpg"
+      price: 200
     }
   ];
 }

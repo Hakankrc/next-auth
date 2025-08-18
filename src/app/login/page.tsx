@@ -85,8 +85,9 @@ export default function LoginPage() {
         setIsLoginMode(true);
       } else {
         const errorData = await response.json();
-        showToast(errorData.message || "Kayıt olurken bir hata oluştu!", "error");
-        setError(errorData.message || "Kayıt olurken bir hata oluştu!");
+        const msg = errorData.error || errorData.message || "Kayıt olurken bir hata oluştu!";
+        showToast(msg, "error");
+        setError(msg);
       }
     } catch {
       showToast("Kayıt olurken bir hata oluştu!", "error");

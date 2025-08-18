@@ -1,13 +1,14 @@
-# NextAuth.js ile Kimlik Doğrulama Uygulaması
+# NextAuth.js ile Kitap Mağazası Uygulaması
 
-Bu proje, Next.js 15 ve NextAuth.js kullanarak modern bir kimlik doğrulama sistemi oluşturur. Auth0 provider entegrasyonu ile güvenli ve ölçeklenebilir bir çözüm sunar.
+Bu proje, Next.js 15 ve NextAuth.js kullanarak modern bir kitap mağazası ve kimlik doğrulama sistemi oluşturur. Credentials provider ile güvenli giriş, kitap satın alma, sepet yönetimi ve admin paneli özellikleri sunar.
 
 ## 🚀 Özellikler
 
 - **Next.js 15** - En son Next.js sürümü ile App Router desteği
 - **TypeScript** - Tip güvenliği ve geliştirici deneyimi
-- **NextAuth.js** - Güvenli kimlik doğrulama sistemi
-- **Auth0 Provider** - Profesyonel kimlik doğrulama servisi
+- **NextAuth.js** - Güvenli kimlik doğrulama sistemi (Credentials Provider)
+- **Kitap Mağazası** - Kitap listeleme, sepet yönetimi, sipariş sistemi
+- **Admin Panel** - Kitap ekleme, kullanıcı yönetimi
 - **TailwindCSS** - Modern ve responsive tasarım
 - **ESLint** - Kod kalitesi ve tutarlılık
 - **Middleware** - Sayfa koruma ve yönlendirme
@@ -33,11 +34,6 @@ Bu proje, Next.js 15 ve NextAuth.js kullanarak modern bir kimlik doğrulama sist
 3. **Ortam değişkenlerini yapılandırın:**
    `.env.local` dosyası oluşturun ve aşağıdaki değişkenleri ekleyin:
    ```env
-   # Auth0 Configuration
-   AUTH0_CLIENT_ID=your_auth0_client_id_here
-   AUTH0_CLIENT_SECRET=your_auth0_client_secret_here
-   AUTH0_ISSUER_BASE_URL=https://your-domain.auth0.com
-
    # NextAuth.js Configuration
    NEXTAUTH_SECRET=your_nextauth_secret_here
    NEXTAUTH_URL=http://localhost:3000
@@ -53,14 +49,13 @@ Bu proje, Next.js 15 ve NextAuth.js kullanarak modern bir kimlik doğrulama sist
    http://localhost:3000
    ```
 
-## 🔧 Auth0 Kurulumu
+## 🔑 Varsayılan Kullanıcı Bilgileri
 
-1. [Auth0 Dashboard](https://manage.auth0.com/) adresine gidin
-2. Yeni bir uygulama oluşturun
-3. Application Type olarak "Single Page Application" seçin
-4. Allowed Callback URLs: `http://localhost:3000/api/auth/callback/nextauth`
-5. Allowed Logout URLs: `http://localhost:3000`
-6. Client ID ve Client Secret'ı `.env.local` dosyasına ekleyin
+### Admin Kullanıcısı
+- **Kullanıcı Adı:** kayra
+- **Şifre:** kayra123
+- **E-posta:** kayraExport@merhaba.com
+- **Ad Soyad:** Kayra Export
 
 ## 📁 Proje Yapısı
 
@@ -68,17 +63,40 @@ Bu proje, Next.js 15 ve NextAuth.js kullanarak modern bir kimlik doğrulama sist
 src/
 ├── app/
 │   ├── api/
-│   │   └── auth/
-│   │       └── [...nextauth]/
-│   │           └── route.ts          # NextAuth.js API rotası
+│   │   ├── auth/
+│   │   │   └── [...nextauth]/
+│   │   │       ├── authOptions.ts    # NextAuth.js konfigürasyonu
+│   │   │       └── route.ts          # NextAuth.js API rotası
+│   │   ├── register/
+│   │   │   └── route.ts              # Kullanıcı kayıt API'si
+│   │   └── users/
+│   │       ├── route.ts              # Kullanıcı listesi API'si
+│   │       └── delete/
+│   │           └── route.ts          # Kullanıcı silme API'si
+│   ├── cart/
+│   │   └── page.tsx                  # Sepet sayfası
 │   ├── dashboard/
-│   │   └── page.tsx                  # Dashboard sayfası
+│   │   └── page.tsx                  # Kitap mağazası ana sayfası
 │   ├── login/
-│   │   └── page.tsx                  # Giriş sayfası
+│   │   └── page.tsx                  # Giriş/kayıt sayfası
+│   ├── order-success/
+│   │   └── page.tsx                  # Sipariş başarı sayfası
+│   ├── profile/
+│   │   └── page.tsx                  # Profil ve admin paneli
 │   ├── globals.css                   # Global stiller
 │   ├── layout.tsx                    # Ana layout
 │   ├── page.tsx                      # Ana sayfa
 │   └── providers.tsx                 # NextAuth.js provider
+├── components/
+│   ├── ConfirmationModal.tsx         # Onay modal bileşeni
+│   └── Toast.tsx                     # Bildirim bileşeni
+├── contexts/
+│   └── ToastContext.tsx              # Bildirim context'i
+├── lib/
+│   ├── books.ts                      # Kitap yönetimi
+│   ├── cart.ts                       # Sepet yönetimi
+│   ├── orders.ts                     # Sipariş yönetimi
+│   └── users.ts                      # Kullanıcı yönetimi
 ├── types/
 │   └── next-auth.d.ts               # NextAuth.js tip tanımları
 └── middleware.ts                     # Sayfa koruma middleware'i
@@ -86,30 +104,42 @@ src/
 
 ## 🎯 Kullanım
 
-### Giriş Yapma
-- `/login` sayfasından Auth0 ile giriş yapın
+### Giriş Yapma ve Kayıt Olma
+- `/login` sayfasından mevcut hesabınızla giriş yapın veya yeni hesap oluşturun
 - Başarılı girişten sonra dashboard'a yönlendirilirsiniz
 
-### Dashboard
+### Kitap Mağazası (Dashboard)
 - `/dashboard` sayfası sadece giriş yapmış kullanıcılar tarafından görüntülenebilir
-- Kullanıcı bilgileri ve hızlı işlemler burada bulunur
+- Kitapları inceleyin, sepete ekleyin, miktar güncelleyin
+- Sepet durumunu alt barda takip edin
+
+### Sepet Yönetimi
+- `/cart` sayfasından sepetinizi görüntüleyin
+- Ürün miktarlarını güncelleyin veya ürünleri çıkarın
+- Siparişi tamamlayın
+
+### Profil ve Admin Paneli
+- `/profile` sayfasından kullanıcı bilgilerinizi görüntüleyin
+- Admin kullanıcıları: yeni kitap ekleyin, kullanıcıları silin
+- Sipariş geçmişinizi takip edin
 
 ### Çıkış Yapma
-- Dashboard'daki "Çıkış Yap" butonuna tıklayarak çıkış yapabilirsiniz
+- Herhangi bir sayfadaki "Çıkış Yap" butonuna tıklayarak çıkış yapabilirsiniz
 - Ana sayfaya yönlendirilirsiniz
 
 ## 🔒 Güvenlik
 
 - **Middleware** ile sayfa koruması
 - **JWT** tabanlı oturum yönetimi
-- **Auth0** ile güvenli kimlik doğrulama
+- **Credentials Provider** ile güvenli kimlik doğrulama
+- **Admin rol kontrolü** ile yetkilendirme
 - **Environment variables** ile hassas bilgi koruması
 
 ## 🚀 Production Deployment
 
 1. **Ortam değişkenlerini güncelleyin:**
+   - `NEXTAUTH_SECRET` güçlü bir secret kullanın
    - `NEXTAUTH_URL` production URL'inizi kullanın
-   - `AUTH0_ISSUER_BASE_URL` production Auth0 domain'inizi kullanın
 
 2. **Build alın:**
    ```bash
@@ -123,9 +153,9 @@ src/
 
 ## 📚 Teknolojiler
 
-- **Frontend:** Next.js 15, React 18, TypeScript
-- **Styling:** TailwindCSS
-- **Authentication:** NextAuth.js, Auth0
+- **Frontend:** Next.js 15, React 19, TypeScript
+- **Styling:** TailwindCSS v4
+- **Authentication:** NextAuth.js v4, Credentials Provider
 - **Development:** ESLint, PostCSS
 - **Build Tool:** Next.js built-in bundler
 
@@ -146,11 +176,14 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 Herhangi bir sorun yaşarsanız:
 1. GitHub Issues'da sorun bildirin
 2. Dokümantasyonu kontrol edin
-3. NextAuth.js ve Auth0 dokümantasyonlarını inceleyin
+3. NextAuth.js dokümantasyonunu inceleyin
 
 ## 🔄 Güncellemeler
 
 - **v1.0.0** - İlk sürüm, temel kimlik doğrulama sistemi
-- NextAuth.js v5 desteği
-- Auth0 provider entegrasyonu
+- **v1.1.0** - Kitap mağazası özellikleri eklendi
+- **v1.2.0** - Sepet yönetimi ve sipariş sistemi
+- **v1.3.0** - Admin paneli ve kullanıcı yönetimi
+- NextAuth.js v4 desteği
+- Credentials provider entegrasyonu
 - Modern UI/UX tasarımı
